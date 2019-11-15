@@ -2,15 +2,15 @@ import numpy as np
 import nltk
 WORD_FREQ = 10
 WINDOW_LENGTH = 5
-INPUT_FILE = "../../mono.tok.de"
+INPUT_FILE = "../../data/mono.toks.de"
 OUTPUT_FILE = "de-counts.txt"
 def main_func():
-    en_file = open(INPUT_FILE,"r",encoding="UTF-8-sig")
-    text = en_file.readlines()
-    en_file.close()
+    de_file = open(INPUT_FILE,"r",encoding="UTF-8-sig")
+    text = de_file.readlines()
+    de_file.close()
     all_word_dict = {}
     for k in range(len(text)):
-        if k%10000==0:
+        if k%100000==0:
             print(k)
         text[k] = nltk.word_tokenize(text[k])
         for word in text[k]:
@@ -32,7 +32,7 @@ def main_func():
     for i in range(len(text)):
         line = text[i]
         length  = len(line)
-        if i%10000==0:
+        if i%100000==0:
             print("count",i)
         for j in range(length):
             for k in range(1,WINDOW_LENGTH+1):
@@ -47,7 +47,7 @@ def main_func():
                     else:
                         counts[line[j]][line[j + k]] = 1
                 
-    with open(OUTPUT_FILE,"w") as output:
+    with open(OUTPUT_FILE,"w", encoding="utf-8") as output:
         for word in counts:
             for context in counts[word]:
                 output.write(word+" "+context+" "+str(counts[word][context])+"\n")
