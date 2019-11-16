@@ -3,13 +3,13 @@ import numpy.linalg as LA
 import gensim
 from counts2vocab import read_vocab
 from scipy.sparse import dok_matrix
-EN_VEC_PATH = "mapped-model-en.txt"
-DE_VEC_PATH = "mapped-model-de.txt"
+EN_VEC_PATH = "tempdata/mapped-model-en.txt"
+DE_VEC_PATH = "tempdata/mapped-model-de.txt"
 TOP_TRANS = 10
 def random_vector():
-    en_word2index = read_vocab("en_word2index.txt")
-    de_word2index = read_vocab("de_word2index.txt")
-    with open("mapped-model-en.txt","w",encoding="utf-8") as output:
+    en_word2index = read_vocab("tempdata/en_word2index.txt")
+    de_word2index = read_vocab("tempdata/de_word2index.txt")
+    with open("tempdata/mapped-model-en.txt","w",encoding="utf-8") as output:
         output.write(str(len(en_word2index))+" "+str(300)+"\n")
         for word in en_word2index:
             output.write(word)
@@ -17,7 +17,7 @@ def random_vector():
             for i in range(300):
                 output.write(" "+str(vector[i]))
             output.write("\n")
-    with open("mapped-model-de.txt","w",encoding="utf-8") as output:
+    with open("tempdata/mapped-model-de.txt","w",encoding="utf-8") as output:
         output.write(str(len(de_word2index))+" "+str(300)+"\n")
         for word in de_word2index:
             output.write(word)
@@ -34,9 +34,9 @@ def vec2pairs():
     print("loading german vectors")
     de_vectors = gensim.models.KeyedVectors.load_word2vec_format(DE_VEC_PATH, binary = False)
     print("load en_word2index")
-    en_word2index = read_vocab("en_word2index.txt")
+    en_word2index = read_vocab("tempdata/en_word2index.txt")
     print("load de_word2index")
-    de_word2index = read_vocab("de_word2index.txt")
+    de_word2index = read_vocab("tempdata/de_word2index.txt")
     length = len(en_word2index)
     de_word2index = {word:de_word2index[word]-length for word in de_word2index}
     en_index2word = {en_word2index[word]:word for word in en_word2index}
@@ -45,25 +45,25 @@ def vec2pairs():
     de_matrix = np.zeros((de_vectors.vector_size,len(de_word2index)))
     en_matrix = np.zeros((len(en_word2index),en_vectors.vector_size))
 
-    print("form english matrix")
+    print("form German matrix")
     for word in de_word2index:
         de_matrix[:,de_word2index[word]] = de_vectors[word]
 
-    de_vec_length = np.reciprocal(LA.norm(de_matrix, axis=0))
+    de_vec_length = np.reciprocal(LA.norm(de_matrix, axis=0))#compute the norm-2 of every word vector. axis=0 means regarding every column as a vector
     for i in range(len(de_vec_length)):
         de_matrix[:, i] *= de_vec_length[i]
 
-    print("form german matrix")
+    print("form English matrix")
     for word in en_word2index:
         en_matrix[en_word2index[word],:] = en_vectors[word]
     
-    en_vec_length = np.reciprocal(LA.norm(en_matrix, axis=1))
+    en_vec_length = np.reciprocal(LA.norm(en_matrix, axis=1))#compute the norm-2 of every word vector
     for i in range(len(en_vec_length)):
         en_matrix[i, :] *= en_vec_length[i]
 
-
+    print("finding translation pairs")
     batch = 1000
-    output = open("pairs.txt","w",encoding="utf-8")
+    output = open("tempdata/pairs.txt","w",encoding="utf-8")
     for i in range(int(len(en_word2index)/batch)):
         print("batch",i)
         temp = en_matrix[i*batch:i*batch+batch,:]

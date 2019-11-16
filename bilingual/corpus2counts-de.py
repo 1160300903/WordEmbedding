@@ -1,9 +1,9 @@
 import numpy as np
 import nltk
-WORD_FREQ = 10
+WORD_FREQ = 20
 WINDOW_LENGTH = 5
-INPUT_FILE = "../../data/mono.toks.de"
-OUTPUT_FILE = "de-counts.txt"
+INPUT_FILE = "../../data/mono.tok.de"
+OUTPUT_FILE = "tempdata/de-counts.txt"
 def main_func():
     de_file = open(INPUT_FILE,"r",encoding="UTF-8-sig")
     text = de_file.readlines()

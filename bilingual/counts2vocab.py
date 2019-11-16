@@ -1,5 +1,5 @@
-INPUT_FILE1 = "en-counts.txt"
-INPUT_FILE2 = "de-counts.txt"
+INPUT_FILE1 = "tempdata/en-counts.txt"
+INPUT_FILE2 = "tempdata/de-counts.txt"
 def assign_index(text, word2index, bias = 0):
     word_count = 0
     for k in range(len(text)):
@@ -24,14 +24,14 @@ def counts2vocab():
     en_file.close()
     en_word2index = {}
     assign_index(en_text, en_word2index)
-    write_vocab(en_word2index,"en_word2index.txt")
+    write_vocab(en_word2index,"tempdata/en_word2index.txt")
 
     de_file = open(INPUT_FILE2,"r",encoding="UTF-8-sig")
     de_text = de_file.readlines()
     de_file.close()
     de_word2index = {}
     assign_index(de_text, de_word2index, bias = len(en_word2index))
-    write_vocab(de_word2index, "de_word2index.txt")
+    write_vocab(de_word2index, "tempdata/de_word2index.txt")
     print("english words", len(en_word2index), len(en_word2index))
     print("german words", len(de_word2index), len(de_word2index))
 
