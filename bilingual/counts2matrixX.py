@@ -1,15 +1,8 @@
 import numpy as np
-import re
-import nltk
-from math import log2
-from nltk.corpus import stopwords
 from scipy.sparse import dok_matrix, csc_matrix
 from counts2vocab import read_vocab
 from matrix_sl import save_matrix
-VECTOR_LENGTH = 300
-UPDATE_THRESHOLD = 100000
-INPUT_FILE1 = "tempdata/en-counts.txt"
-INPUT_FILE2 = "tempdata/de-counts.txt"
+import setting as st
 
 def form_matrix(text, word2index, counts):
     tmp_counts = dok_matrix(counts.shape,dtype="float32")
@@ -18,7 +11,7 @@ def form_matrix(text, word2index, counts):
         word, context, count = text[k]
         tmp_counts[word2index[word],word2index[context]] = int(count)
         times += 1
-        if times == UPDATE_THRESHOLD:
+        if times == st.UPDATE_THRESHOLD:
             counts = counts + tmp_counts.tocsc()
             tmp_counts = dok_matrix(counts.shape,dtype="float32")
             times = 0
@@ -26,12 +19,12 @@ def form_matrix(text, word2index, counts):
     return counts
 def compute_X():
     print("read counts")
-    en_file = open(INPUT_FILE1,"r",encoding="UTF-8-sig")
-    en_text = [line.strip().split() for line in en_file.readlines()]
-    en_file.close()
-    de_file = open(INPUT_FILE2,"r",encoding="UTF-8-sig")
-    de_text = [line.strip().split() for line in de_file.readlines()]
-    de_file.close()
+    src_file = open(st.CNT_OUTPUT + st.SRC_CNT,"r",encoding="UTF-8-sig")
+    src_text = [line.strip().split() for line in src_file.readlines()]
+    src_file.close()
+    trg_file = open(st.CNT_OUTPUT + st.TRG_CNT,"r",encoding="UTF-8-sig")
+    trg_text = [line.strip().split() for line in trg_file.readlines()]
+    trg_file.close()
 
     print("read word2index")
     en_word2index = read_vocab("tempdata/en_word2index.txt")
@@ -40,8 +33,8 @@ def compute_X():
 
     print("form matrix X")
     counts = csc_matrix((total_number,total_number),dtype="float32")
-    counts = form_matrix(en_text, en_word2index, counts)
-    counts = form_matrix(de_text, de_word2index, counts)
+    counts = form_matrix(src_text, en_word2index, counts)
+    counts = form_matrix(trg_text, de_word2index, counts)
     #calculate e^pmi
     print("compute pmi")
     sum_r = np.array(counts.sum(axis=1))[:,0]
