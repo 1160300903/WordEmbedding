@@ -9,19 +9,19 @@ def random_vector(src_vocab, trg_vocab, src_output, trg_output):
     src_word2index = read_vocab(src_vocab)
     trg_word2index = read_vocab(trg_vocab)
     with open(src_output,"w",encoding="utf-8") as output:
-        output.write(str(len(src_word2index))+" "+str(300)+"\n")
+        output.write(str(len(src_word2index))+" "+str(st.VECTOR_LENGTH)+"\n")
         for word in src_word2index:
             output.write(word)
-            vector = np.random.random(300)
-            for i in range(300):
+            vector = np.random.random(st.VECTOR_LENGTH)
+            for i in range(st.VECTOR_LENGTH):
                 output.write(" "+str(vector[i]))
             output.write("\n")
     with open(trg_output,"w",encoding="utf-8") as output:
-        output.write(str(len(trg_word2index))+" "+str(300)+"\n")
+        output.write(str(len(trg_word2index))+" "+str(st.VECTOR_LENGTH)+"\n")
         for word in trg_word2index:
             output.write(word)
-            vector = np.random.random(300)
-            for i in range(300):
+            vector = np.random.random(st.VECTOR_LENGTH)
+            for i in range(st.VECTOR_LENGTH):
                 output.write(" "+str(vector[i]))
             output.write("\n")
 
@@ -92,8 +92,8 @@ def vec2pairs(src_random_vec, trg_random_vec, src_vocab, trg_vocab, output_file)
     output.close()
 if __name__ == "__main__":
     src_vocab, trg_vocab = st.VOCAB_DIR + "", st.VOCAB_DIR + ""
-    src_random_vec, trg_random_vec= st.RDM_VEC_DIR + "", st.RDM_VEC_DIR + ""
-    output_file = st.PAIRS_DIR + ""
+    src_random_vec, trg_random_vec= st.RDM_VEC_DIR + "L" + str(st.VECTOR_LENGTH) + ".", st.RDM_VEC_DIR + "L" + str(st.VECTOR_LENGTH) + "."
+    output_file = st.PAIRS_DIR + + "T" + str(st.TOP_TRANS) + "."
     random_vector(src_vocab, trg_vocab, src_random_vec, trg_random_vec)
     vec2pairs(src_random_vec, trg_random_vec, src_vocab, trg_vocab, output_file)
 

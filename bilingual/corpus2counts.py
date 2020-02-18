@@ -2,7 +2,7 @@ import nltk
 import setting as st
 
 
-def cps2cnt(src_file, output_dir):
+def cps2cnt(src_file, output_file):
     word_dict = {}
 
     with open(src_file, "r", encoding="UTF-8-sig") as src_file:
@@ -37,14 +37,14 @@ def cps2cnt(src_file, output_dir):
                     counts[line[j]][line[j + k]] = counts[line[j]][line[j + k]] + 1 if line[j + k] \
                                                                                        in counts[line[j]] else 1
 
-    with open(output_dir + "F" + str(st.WORD_FREQ) + "-W" + str(st.WINDOW_LENGTH) + "." + src_file,
-              "w") as output:
+    with open(output_file,"w") as output:
         for word in counts:
             for context in counts[word]:
                 output.write(word + " " + context + " " + str(counts[word][context]) + "\n")
 
 
 if __name__ == "__main__":
-    corpus = ""
-    cps2cnt(st.CPR_DIR + corpus, st.CNT_DIR)
+    corpus = st.CPR_DIR + ""
+    output_count = st.CNT_DIR + "F" + str(st.WORD_FREQ) + "-W" + str(st.WINDOW_LENGTH) + "." 
+    cps2cnt(corpus, output_count)
 

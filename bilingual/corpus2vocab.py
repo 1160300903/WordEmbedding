@@ -29,17 +29,18 @@ def read_vocab(path):
             word, index = line.strip().split()
             vocab[word] = int(index)
     return vocab
-def corpus2vocab(src_file, trg_file, output_dir):
+def corpus2vocab(src_file, trg_file, output_src, output_trg):
     src_word2index = {}
     assign_index(src_file, src_word2index)
-    write_vocab(src_word2index,output_dir + "vocab-" + src_file)
+    write_vocab(src_word2index,output_src)
 
     trg_word2index = {}
     assign_index(trg_file, trg_word2index, bias = len(src_word2index))
-    write_vocab(trg_word2index,output_dir  + "vocab-" + trg_file)
+    write_vocab(trg_word2index,output_trg)
     print("english words", len(src_word2index), len(src_word2index))
     print("german words", len(trg_word2index), len(trg_word2index))
 
 if __name__ =="__main__":
-    src_file, trg_file = "", ""
-    corpus2vocab(st.CPR_DIR + src_file, st.CPR_DIR + trg_file, st.VOCAB_DIR)
+    src_file, trg_file = st.CPR_DIR + "", st.CPR_DIR + ""
+    output_src, output_trg = st.VOCAB_DIR + "F" + str(st.WORD_FREQ) + ".", st.VOCAB_DIR + "F" + str(st.WORD_FREQ) + "."
+    corpus2vocab(src_file, trg_file, output_src, output_trg)

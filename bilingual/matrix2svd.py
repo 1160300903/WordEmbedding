@@ -43,5 +43,5 @@ def svd(matrixX, matrixD, src_vocab, trg_vocab, src_vec, trg_vec):
 if __name__ =="__main__":
     matrixX, matrixD = st.MATRIX_DIR + "", st.MATRIX_DIR + ""
     src_vocab, trg_vocab = st.VOCAB_DIR + "", st.VOCAB_DIR + ""
-    src_vec, trg_vec = st.RES_DIR + "", st.RES_DIR + ""
+    src_vec, trg_vec = st.RES_DIR + "L" + str(st.VECTOR_LENGTH) + ".", st.RES_DIR + "L" + str(st.VECTOR_LENGTH) + "."
     svd(matrixX, matrixD, src_vocab, trg_vocab, src_vec, trg_vec)
