@@ -3,7 +3,7 @@ from scipy.sparse import dok_matrix, csc_matrix
 from corpus2vocab import read_vocab
 from matrix_sl import save_matrix
 import setting as st
-
+import sys
 def form_matrix(text, word2index, counts):
     tmp_counts = dok_matrix(counts.shape,dtype="float32")
     times = 0
@@ -62,7 +62,13 @@ def compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file):
 
 
 if __name__ == "__main__":
-    src_file, trg_file = st.CNT_DIR + "", st.CNT_DIR + ""
-    src_vocab, trg_vocab, output_file = st.VOCAB_DIR + "", st.VOCAB_DIR + "", st.MATRIX_DIR + ""
+    src_file = st.CNT_DIR + sys.argv[1] if len(sys.argv) > 1 else st.CNT_DIR + ""
+    trg_file = st.CNT_DIR + sys.argv[2] if len(sys.argv) > 2 else st.CNT_DIR + ""
+    src_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + ""
+    trg_vocab = st.VOCAB_DIR + sys.argv[4] if len(sys.argv) > 4 else st.VOCAB_DIR + ""
+    
+    para = src_file.split("/")[-1].split(".")[0]
+    output_file = st.MATRIX_DIR + para + "." + sys.argv[5] if len(sys.argv) > 5 else st.MATRIX_DIR + para + "." + ""
+
     compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file)
 

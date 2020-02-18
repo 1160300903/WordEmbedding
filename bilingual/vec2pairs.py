@@ -4,10 +4,12 @@ import gensim
 from corpus2vocab import read_vocab
 from scipy.sparse import dok_matrix
 import setting as st
+import sys
 
 def random_vector(src_vocab, trg_vocab, src_output, trg_output):
     src_word2index = read_vocab(src_vocab)
     trg_word2index = read_vocab(trg_vocab)
+
     with open(src_output,"w",encoding="utf-8") as output:
         output.write(str(len(src_word2index))+" "+str(st.VECTOR_LENGTH)+"\n")
         for word in src_word2index:
@@ -16,6 +18,7 @@ def random_vector(src_vocab, trg_vocab, src_output, trg_output):
             for i in range(st.VECTOR_LENGTH):
                 output.write(" "+str(vector[i]))
             output.write("\n")
+
     with open(trg_output,"w",encoding="utf-8") as output:
         output.write(str(len(trg_word2index))+" "+str(st.VECTOR_LENGTH)+"\n")
         for word in trg_word2index:
@@ -28,21 +31,23 @@ def random_vector(src_vocab, trg_vocab, src_output, trg_output):
 #since the embedding words set equals the context words set in my experiment,
 #I just use embedding words to form D_1 and D_2
 def vec2pairs(src_random_vec, trg_random_vec, src_vocab, trg_vocab, output_file):
-    print("loading english vectors")
+    print("loading source vectors")
     src_vectors = gensim.models.KeyedVectors.load_word2vec_format(src_random_vec, binary = False)
-    print("loading german vectors")
+    print("loading target vectors")
     trg_vectors = gensim.models.KeyedVectors.load_word2vec_format(trg_random_vec, binary = False)
+
     print("load src_word2index")
     src_word2index = read_vocab(src_vocab)
     print("load trg_word2index")
     trg_word2index = read_vocab(trg_vocab)
     length = len(src_word2index)
     trg_word2index = {word:trg_word2index[word]-length for word in trg_word2index}
+
     src_index2word = {src_word2index[word]:word for word in src_word2index}
     trg_index2word = {trg_word2index[word]:word for word in trg_word2index}
 
-    trg_matrix = np.zeros((trg_vectors.vector_size,len(trg_word2index)))
-    src_matrix = np.zeros((len(src_word2index),src_vectors.vector_size))
+    trg_matrix = np.zeros((trg_vectors.vector_size, len(trg_word2index)))
+    src_matrix = np.zeros((len(src_word2index), src_vectors.vector_size))
 
     print("form the target language matrix")
     for word in trg_word2index:
@@ -91,9 +96,20 @@ def vec2pairs(src_random_vec, trg_random_vec, src_vocab, trg_vocab, output_file)
             output.write(src_index2word[base+j]+" "+trg_index2word[index[j, k]]+" "+str(result[j, index[j, k]]/sum)+"\n")
     output.close()
 if __name__ == "__main__":
-    src_vocab, trg_vocab = st.VOCAB_DIR + "", st.VOCAB_DIR + ""
-    src_random_vec, trg_random_vec= st.RDM_VEC_DIR + "L" + str(st.VECTOR_LENGTH) + ".", st.RDM_VEC_DIR + "L" + str(st.VECTOR_LENGTH) + "."
-    output_file = st.PAIRS_DIR + + "T" + str(st.TOP_TRANS) + "."
+    src_vocab = st.VOCAB_DIR + sys.argv[1] if len(sys.argv) > 1 else st.VOCAB_DIR + ""
+    trg_vocab = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + ""
+
+    para = src_vocab.split("/")[-1].split(".")[0]
+    src_random_vec = st.RDM_VEC_DIR + para + "-L" + str(st.VECTOR_LENGTH) + "."
+    trg_random_vec = st.RDM_VEC_DIR + para + "-L" + str(st.VECTOR_LENGTH) + "."
+
+    src_random_vec += sys.argv[3] if len(sys.argv) > 3 else ""
+    trg_random_vec += sys.argv[4] if len(sys.argv) > 4 else ""
+
+    para = src_random_vec.split("/")[-1].split(".")[0]
+    output_file = st.PAIRS_DIR + para + "-T" + str(st.TOP_TRANS) + "."
+    output_file += sys.argv[5] if len(sys.argv) > 5 else ""
+
     random_vector(src_vocab, trg_vocab, src_random_vec, trg_random_vec)
     vec2pairs(src_random_vec, trg_random_vec, src_vocab, trg_vocab, output_file)
 

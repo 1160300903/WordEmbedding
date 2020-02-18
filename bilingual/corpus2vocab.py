@@ -1,6 +1,7 @@
 import nltk
 from collections import defaultdict
 import setting as st
+import sys
 def assign_index(path, word2index, bias = 0):
     file = open(path,'r', encoding='utf-8')
     text = file.readlines()
@@ -11,8 +12,8 @@ def assign_index(path, word2index, bias = 0):
         for word in text[k]:
             word_counts[word] += 1
     word_counts = [(word, word_counts[word]) for word in word_counts if word_counts[word] >= st.WORD_FREQ]
-    # TODO DELETE word whose freq is lower than WORD_FREQ
-    word_counts.sort(lambda a: a[1], reverse=True)
+
+    word_counts.sort(key = lambda a: a[1], reverse=True)
     i = bias
     for word, _ in word_counts:
         word2index[word] = i
@@ -36,10 +37,17 @@ def corpus2vocab(src_file, trg_file, output_src, output_trg):
     trg_word2index = {}
     assign_index(trg_file, trg_word2index, bias = len(src_word2index))
     write_vocab(trg_word2index,output_trg)
-    print("english words", len(src_word2index), len(src_word2index))
-    print("german words", len(trg_word2index), len(trg_word2index))
+    print("the source language words", len(src_word2index), len(src_word2index))
+    print("the target language words", len(trg_word2index), len(trg_word2index))
 
 if __name__ =="__main__":
-    src_file, trg_file = st.CPR_DIR + "", st.CPR_DIR + ""
-    output_src, output_trg = st.VOCAB_DIR + "F" + str(st.WORD_FREQ) + ".", st.VOCAB_DIR + "F" + str(st.WORD_FREQ) + "."
+    src_file = st.CPR_DIR + sys.argv[1] if len(sys.argv) > 1 else st.CPR_DIR + ""
+    trg_file = st.CPR_DIR + sys.argv[2] if len(sys.argv) > 2 else st.CPR_DIR + ""
+
+    output_src = st.VOCAB_DIR + "F" + str(st.WORD_FREQ) + "."
+    output_src += sys.argv[3] if len(sys.argv) > 3 else ""
+
+    output_trg = st.VOCAB_DIR + "F" + str(st.WORD_FREQ) + "."
+    output_trg += sys.argv[4] if len(sys.argv) > 4 else ""
+
     corpus2vocab(src_file, trg_file, output_src, output_trg)
