@@ -1,25 +1,24 @@
 import numpy as np
 import numpy.linalg as LA
 import gensim
-from counts2vocab import read_vocab
+from corpus2vocab import read_vocab
 from scipy.sparse import dok_matrix
-EN_VEC_PATH = "tempdata/mapped-model-en.txt"
-DE_VEC_PATH = "tempdata/mapped-model-de.txt"
-TOP_TRANS = 10
-def random_vector():
-    en_word2index = read_vocab("tempdata/en_word2index.txt")
-    de_word2index = read_vocab("tempdata/de_word2index.txt")
-    with open("tempdata/mapped-model-en.txt","w",encoding="utf-8") as output:
-        output.write(str(len(en_word2index))+" "+str(300)+"\n")
-        for word in en_word2index:
+import setting as st
+
+def random_vector(src_vocab, trg_vocab, src_output, trg_output):
+    src_word2index = read_vocab(src_vocab)
+    trg_word2index = read_vocab(trg_vocab)
+    with open(src_output,"w",encoding="utf-8") as output:
+        output.write(str(len(src_word2index))+" "+str(300)+"\n")
+        for word in src_word2index:
             output.write(word)
             vector = np.random.random(300)
             for i in range(300):
                 output.write(" "+str(vector[i]))
             output.write("\n")
-    with open("tempdata/mapped-model-de.txt","w",encoding="utf-8") as output:
-        output.write(str(len(de_word2index))+" "+str(300)+"\n")
-        for word in de_word2index:
+    with open(trg_output,"w",encoding="utf-8") as output:
+        output.write(str(len(trg_word2index))+" "+str(300)+"\n")
+        for word in trg_word2index:
             output.write(word)
             vector = np.random.random(300)
             for i in range(300):
@@ -28,68 +27,74 @@ def random_vector():
 
 #since the embedding words set equals the context words set in my experiment,
 #I just use embedding words to form D_1 and D_2
-def vec2pairs():
+def vec2pairs(src_random_vec, trg_random_vec, src_vocab, trg_vocab, output_file):
     print("loading english vectors")
-    en_vectors = gensim.models.KeyedVectors.load_word2vec_format(EN_VEC_PATH, binary = False)
+    src_vectors = gensim.models.KeyedVectors.load_word2vec_format(src_random_vec, binary = False)
     print("loading german vectors")
-    de_vectors = gensim.models.KeyedVectors.load_word2vec_format(DE_VEC_PATH, binary = False)
-    print("load en_word2index")
-    en_word2index = read_vocab("tempdata/en_word2index.txt")
-    print("load de_word2index")
-    de_word2index = read_vocab("tempdata/de_word2index.txt")
-    length = len(en_word2index)
-    de_word2index = {word:de_word2index[word]-length for word in de_word2index}
-    en_index2word = {en_word2index[word]:word for word in en_word2index}
-    de_index2word = {de_word2index[word]:word for word in de_word2index}
+    trg_vectors = gensim.models.KeyedVectors.load_word2vec_format(trg_random_vec, binary = False)
+    print("load src_word2index")
+    src_word2index = read_vocab(src_vocab)
+    print("load trg_word2index")
+    trg_word2index = read_vocab(trg_vocab)
+    length = len(src_word2index)
+    trg_word2index = {word:trg_word2index[word]-length for word in trg_word2index}
+    src_index2word = {src_word2index[word]:word for word in src_word2index}
+    trg_index2word = {trg_word2index[word]:word for word in trg_word2index}
 
-    de_matrix = np.zeros((de_vectors.vector_size,len(de_word2index)))
-    en_matrix = np.zeros((len(en_word2index),en_vectors.vector_size))
+    trg_matrix = np.zeros((trg_vectors.vector_size,len(trg_word2index)))
+    src_matrix = np.zeros((len(src_word2index),src_vectors.vector_size))
 
-    print("form German matrix")
-    for word in de_word2index:
-        de_matrix[:,de_word2index[word]] = de_vectors[word]
+    print("form the target language matrix")
+    for word in trg_word2index:
+        trg_matrix[:,trg_word2index[word]] = trg_vectors[word]
 
-    de_vec_length = np.reciprocal(LA.norm(de_matrix, axis=0))#compute the norm-2 of every word vector. axis=0 means regarding every column as a vector
-    for i in range(len(de_vec_length)):
-        de_matrix[:, i] *= de_vec_length[i]
+    # compute the norm-2 of every word vector. axis=0 means regarding every column as a vector
+    trg_vec_length = np.reciprocal(LA.norm(trg_matrix, axis=0))
+    for i in range(len(trg_vec_length)):
+        trg_matrix[:, i] *= trg_vec_length[i]
 
-    print("form English matrix")
-    for word in en_word2index:
-        en_matrix[en_word2index[word],:] = en_vectors[word]
+    print("form the source language matrix")
+    for word in src_word2index:
+        src_matrix[src_word2index[word],:] = src_vectors[word]
     
-    en_vec_length = np.reciprocal(LA.norm(en_matrix, axis=1))#compute the norm-2 of every word vector
-    for i in range(len(en_vec_length)):
-        en_matrix[i, :] *= en_vec_length[i]
+    # compute the norm-2 of every word vector
+    src_vec_length = np.reciprocal(LA.norm(src_matrix, axis=1))
+    for i in range(len(src_vec_length)):
+        src_matrix[i, :] *= src_vec_length[i]
 
     print("finding translation pairs")
     batch = 1000
-    output = open("tempdata/pairs.txt","w",encoding="utf-8")
-    for i in range(int(len(en_word2index)/batch)):
+    output = open(output_file,"w",encoding="utf-8")
+    for i in range(int(len(src_word2index)/batch)):
         print("batch",i)
-        temp = en_matrix[i*batch:i*batch+batch,:]
-        result = np.dot(temp, de_matrix)
-        index = np.argpartition(result,-TOP_TRANS,axis=1)[:,-TOP_TRANS:]
+        temp = src_matrix[i*batch:i*batch+batch,:]
+        result = np.dot(temp, trg_matrix)
+        index = np.argpartition(result,-st.TOP_TRANS,axis=1)[:,-st.TOP_TRANS:]
         base = i*batch
         for j in range(0,batch):
             sum = 0
-            for k in range(TOP_TRANS):
+            for k in range(st.TOP_TRANS):
                 sum += result[j, index[j, k]]
-            for k in range(TOP_TRANS):
-                output.write(en_index2word[base+j]+" "+de_index2word[index[j, k]]+" "+str(result[j,index[j, k]]/sum)+"\n")
+            for k in range(st.TOP_TRANS):
+                output.write(src_index2word[base+j]+" "+trg_index2word[index[j, k]]+" "+str(result[j,index[j, k]]/sum)+"\n")
 
-    i = int(len(en_word2index)/batch)
-    temp = en_matrix[i*batch:len(en_word2index), :]
-    result = np.dot(temp, de_matrix)
-    index = np.argpartition(result, -TOP_TRANS, axis=1)[:,-TOP_TRANS:]
+    i = int(len(src_word2index)/batch)
+    temp = src_matrix[i*batch:len(src_word2index), :]
+    result = np.dot(temp, trg_matrix)
+    index = np.argpartition(result, -st.TOP_TRANS, axis=1)[:,-st.TOP_TRANS:]
     base = i*batch
     for j in range(0, temp.shape[0]):
         sum = 0
-        for k in range(TOP_TRANS):
+        for k in range(st.TOP_TRANS):
             sum += result[j, index[j, k]]
-        for k in range(TOP_TRANS):
-            output.write(en_index2word[base+j]+" "+de_index2word[index[j, k]]+" "+str(result[j, index[j, k]]/sum)+"\n")
+        for k in range(st.TOP_TRANS):
+            output.write(src_index2word[base+j]+" "+trg_index2word[index[j, k]]+" "+str(result[j, index[j, k]]/sum)+"\n")
     output.close()
 if __name__ == "__main__":
-    vec2pairs()
+    src_vocab, trg_vocab = st.VOCAB_DIR + "", st.VOCAB_DIR + ""
+    src_random_vec, trg_random_vec= st.RDM_VEC_DIR + "", st.RDM_VEC_DIR + ""
+    output_file = st.PAIRS_DIR + ""
+    random_vector(src_vocab, trg_vocab, src_random_vec, trg_random_vec)
+    vec2pairs(src_random_vec, trg_random_vec, src_vocab, trg_vocab, output_file)
 
     

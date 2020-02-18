@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.sparse import dok_matrix, csc_matrix
-from counts2vocab import read_vocab
+from corpus2vocab import read_vocab
 from matrix_sl import save_matrix
 import setting as st
 
@@ -17,24 +17,24 @@ def form_matrix(text, word2index, counts):
             times = 0
     counts = counts + tmp_counts.tocsc()
     return counts
-def compute_X():
+def compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file):
     print("read counts")
-    src_file = open(st.CNT_OUTPUT + st.SRC_CNT,"r",encoding="UTF-8-sig")
+    src_file = open(src_file,"r",encoding="UTF-8-sig")
     src_text = [line.strip().split() for line in src_file.readlines()]
     src_file.close()
-    trg_file = open(st.CNT_OUTPUT + st.TRG_CNT,"r",encoding="UTF-8-sig")
+    trg_file = open(trg_file,"r",encoding="UTF-8-sig")
     trg_text = [line.strip().split() for line in trg_file.readlines()]
     trg_file.close()
 
     print("read word2index")
-    en_word2index = read_vocab("tempdata/en_word2index.txt")
-    de_word2index = read_vocab("tempdata/de_word2index.txt")
-    total_number = len(en_word2index) + len(de_word2index)
+    src_word2index = read_vocab(src_vocab)
+    trg_word2index = read_vocab(trg_vocab)
+    total_number = len(src_word2index) + len(trg_word2index)
 
     print("form matrix X")
     counts = csc_matrix((total_number,total_number),dtype="float32")
-    counts = form_matrix(src_text, en_word2index, counts)
-    counts = form_matrix(trg_text, de_word2index, counts)
+    counts = form_matrix(src_text, src_word2index, counts)
+    counts = form_matrix(trg_text, trg_word2index, counts)
     #calculate e^pmi
     print("compute pmi")
     sum_r = np.array(counts.sum(axis=1))[:,0]
@@ -58,9 +58,11 @@ def compute_X():
     pmi = pmi * sum_total
     pmi.data = np.log(pmi.data)
 
-    save_matrix("tempdata/matrixX", pmi)
+    save_matrix(output_file, pmi)
 
 
 if __name__ == "__main__":
-    compute_X()
+    src_file, trg_file = st.CNT_DIR + "", st.CNT_DIR + ""
+    src_vocab, trg_vocab, output_file = st.VOCAB_DIR + "", st.VOCAB_DIR + "", st.MATRIX_DIR + ""
+    compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file)
 

@@ -2,22 +2,13 @@ WORD_FREQ = 10
 WINDOW_LENGTH = 5
 VECTOR_LENGTH = 300
 UPDATE_THRESHOLD = 100000
-
-# corpora
-    ## input
-SRC_DIR = "../vecmap/" # dir
-SRC_FILE = "" # file
-    ## output
-CNT_OUTPUT = "./tempdata/count/" #dir
-CNT_FILE = "" # file
-
-# vocabulary
-    ## input
-
-# counts
-    ## input
-            # dir CNT_OUTPUT
-SRC_CNT = "" # file
-TRG_CNT = "" #file
-    ## output
+TOP_TRANS = 10
+## DIR
+CPR_DIR = "../vecmap/"
+CNT_DIR = "./tempdata/count/"
+VOCAB_DIR = ""
+MATRIX_DIR = ""
+RDM_VEC_DIR = ""
+PAIRS_DIR = ""
+RES_DIR = ""
 

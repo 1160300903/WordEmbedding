@@ -10,7 +10,8 @@ def assign_index(path, word2index, bias = 0):
         text[k] = nltk.word_tokenize(text[k])
         for word in text[k]:
             word_counts[word] += 1
-    word_counts = [(word, word_counts[word]) for word in word_counts]
+    word_counts = [(word, word_counts[word]) for word in word_counts if word_counts[word] >= st.WORD_FREQ]
+    # TODO DELETE word whose freq is lower than WORD_FREQ
     word_counts.sort(lambda a: a[1], reverse=True)
     word2index = {}
     i = 0
@@ -28,16 +29,17 @@ def read_vocab(path):
             word, index = line.strip().split()
             vocab[word] = int(index)
     return vocab
-def counts2vocab():
-    en_word2index = {}
-    assign_index(INPUT_FILE1, en_word2index)
-    write_vocab(en_word2index,"tempdata/en_word2index.txt")
+def corpus2vocab(src_file, trg_file, output_dir):
+    src_word2index = {}
+    assign_index(src_file, src_word2index)
+    write_vocab(src_word2index,output_dir + "vocab-" + src_file)
 
-    de_word2index = {}
-    assign_index(INPUT_FILE2, de_word2index, bias = len(en_word2index))
-    write_vocab(de_word2index, "tempdata/de_word2index.txt")
-    print("english words", len(en_word2index), len(en_word2index))
-    print("german words", len(de_word2index), len(de_word2index))
+    trg_word2index = {}
+    assign_index(trg_file, trg_word2index, bias = len(src_word2index))
+    write_vocab(trg_word2index,output_dir  + "vocab-" + trg_file)
+    print("english words", len(src_word2index), len(src_word2index))
+    print("german words", len(trg_word2index), len(trg_word2index))
 
 if __name__ =="__main__":
-    counts2vocab()
+    src_file, trg_file = "", ""
+    corpus2vocab(st.CPR_DIR + src_file, st.CPR_DIR + trg_file, st.VOCAB_DIR)
