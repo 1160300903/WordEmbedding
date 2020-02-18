@@ -13,8 +13,7 @@ def assign_index(path, word2index, bias = 0):
     word_counts = [(word, word_counts[word]) for word in word_counts if word_counts[word] >= st.WORD_FREQ]
     # TODO DELETE word whose freq is lower than WORD_FREQ
     word_counts.sort(lambda a: a[1], reverse=True)
-    word2index = {}
-    i = 0
+    i = bias
     for word, _ in word_counts:
         word2index[word] = i
         i += 1
