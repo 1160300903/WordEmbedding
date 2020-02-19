@@ -1,9 +1,6 @@
-from counts2matrixX import compute_X
-from pairs2matrixD import compute_D
 from corpus2vocab import read_vocab
-import numpy as np
 from sparsesvd import sparsesvd
-from scipy.sparse import csc_matrix, eye
+from scipy.sparse import eye
 from matrix_sl import load_matrix
 import setting as st
 import sys

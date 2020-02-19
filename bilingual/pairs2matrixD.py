@@ -1,4 +1,3 @@
-import numpy as np 
 from corpus2vocab import read_vocab
 from scipy.sparse import dok_matrix, csc_matrix
 from matrix_sl import save_matrix

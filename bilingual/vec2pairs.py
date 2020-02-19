@@ -2,7 +2,6 @@ import numpy as np
 import numpy.linalg as LA
 import gensim
 from corpus2vocab import read_vocab
-from scipy.sparse import dok_matrix
 import setting as st
 import sys
 
