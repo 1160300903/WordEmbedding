@@ -17,7 +17,7 @@ def form_matrix(text, word2index, counts):
             times = 0
     counts = counts + tmp_counts.tocsc()
     return counts
-def compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file):
+def compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file, pmi):
     print("read counts")
     src_file = open(src_file,"r",encoding="UTF-8-sig")
     src_text = [line.strip().split() for line in src_file.readlines()]
@@ -35,28 +35,29 @@ def compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file):
     counts = csc_matrix((total_number,total_number),dtype="float32")
     counts = form_matrix(src_text, src_word2index, counts)
     counts = form_matrix(trg_text, trg_word2index, counts)
-    #calculate e^pmi
-    print("compute pmi")
-    sum_r = np.array(counts.sum(axis=1))[:,0]
-    sum_c = np.array(counts.sum(axis=0))[0,:]
+    if pmi:
+        #calculate e^pmi
+        print("compute pmi")
+        sum_r = np.array(counts.sum(axis=1))[:,0]
+        sum_c = np.array(counts.sum(axis=0))[0,:]
 
-    sum_total = sum_c.sum()
-    sum_r = np.reciprocal(sum_r)
-    sum_c = np.reciprocal(sum_c)
+        sum_total = sum_c.sum()
+        sum_r = np.reciprocal(sum_r)
+        sum_c = np.reciprocal(sum_c)
 
-    pmi = csc_matrix(counts)
-    print("divided by marginal sum")
-    normalizer = dok_matrix((len(sum_r),len(sum_r)))
-    normalizer.setdiag(sum_r)
-    pmi = normalizer.tocsc().dot(pmi)
+        pmi = csc_matrix(counts)
+        print("divided by marginal sum")
+        normalizer = dok_matrix((len(sum_r),len(sum_r)))
+        normalizer.setdiag(sum_r)
+        pmi = normalizer.tocsc().dot(pmi)
 
-    normalizer = dok_matrix((len(sum_c),len(sum_c)))
-    normalizer.setdiag(sum_c)
-    pmi = pmi.dot(normalizer.tocsc())
+        normalizer = dok_matrix((len(sum_c),len(sum_c)))
+        normalizer.setdiag(sum_c)
+        pmi = pmi.dot(normalizer.tocsc())
 
-    print("multiply total sum")
-    pmi = pmi * sum_total
-    pmi.data = np.log(pmi.data)
+        print("multiply total sum")
+        pmi = pmi * sum_total
+        pmi.data = np.log(pmi.data)
 
     save_matrix(output_file, pmi)
 
@@ -69,6 +70,6 @@ if __name__ == "__main__":
     
     para = src_file.split("/")[-1].split(".")[0]
     output_file = st.MATRIX_DIR + para + "." + sys.argv[5] if len(sys.argv) > 5 else st.MATRIX_DIR + para + "." + ""
-
-    compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file)
+    pmi = bool(sys.argv[6]) if len(sys.argv) > 6 else True
+    compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file, pmi = pmi)
 

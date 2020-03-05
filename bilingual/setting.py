@@ -11,6 +11,7 @@ MATRIX_DIR = "./tempdata/matrix/"
 RDM_VEC_DIR = "./tempdata/random_vector/"
 PAIRS_DIR = "./tempdata/pairs/"
 RES_DIR = "./tempdata/result/"
+VEC_DIR = "./vector/"
 
 
 
