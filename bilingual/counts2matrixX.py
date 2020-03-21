@@ -4,27 +4,22 @@ from corpus2vocab import read_vocab
 from matrix_sl import save_matrix
 import setting as st
 import sys
-def form_matrix(text, word2index, counts):
+def form_matrix(file, word2index, counts):
     tmp_counts = dok_matrix(counts.shape,dtype="float32")
     times = 0
-    for k in range(len(text)):
-        word, context, count = text[k]
+    text = file.readline()
+    while text != "":
+        word, context, count = text.strip().split()
         tmp_counts[word2index[word],word2index[context]] = int(count)
         times += 1
         if times == st.UPDATE_THRESHOLD:
             counts = counts + tmp_counts.tocsc()
             tmp_counts = dok_matrix(counts.shape,dtype="float32")
             times = 0
+        text = file.readline()
     counts = counts + tmp_counts.tocsc()
     return counts
 def compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file, pmi):
-    print("read counts")
-    src_file = open(src_file,"r",encoding="UTF-8-sig")
-    src_text = [line.strip().split() for line in src_file.readlines()]
-    src_file.close()
-    trg_file = open(trg_file,"r",encoding="UTF-8-sig")
-    trg_text = [line.strip().split() for line in trg_file.readlines()]
-    trg_file.close()
 
     print("read word2index")
     src_word2index = read_vocab(src_vocab)
@@ -33,8 +28,8 @@ def compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file, pmi):
 
     print("form matrix X")
     counts = csc_matrix((total_number,total_number),dtype="float32")
-    counts = form_matrix(src_text, src_word2index, counts)
-    counts = form_matrix(trg_text, trg_word2index, counts)
+    counts = form_matrix(open(src_file,"r",encoding="UTF-8-sig"), src_word2index, counts)
+    counts = form_matrix(open(trg_file,"r",encoding="UTF-8-sig"), trg_word2index, counts)
     if pmi:
         #calculate e^pmi
         print("compute pmi")
@@ -58,18 +53,19 @@ def compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file, pmi):
         print("multiply total sum")
         pmi = pmi * sum_total
         pmi.data = np.log(pmi.data)
-
-    save_matrix(output_file, pmi)
+        save_matrix(output_file, pmi)
+    else:
+        save_matrix(output_file, counts)
 
 
 if __name__ == "__main__":
-    src_file = st.CNT_DIR + sys.argv[1] if len(sys.argv) > 1 else st.CNT_DIR + ""
-    trg_file = st.CNT_DIR + sys.argv[2] if len(sys.argv) > 2 else st.CNT_DIR + ""
-    src_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + ""
-    trg_vocab = st.VOCAB_DIR + sys.argv[4] if len(sys.argv) > 4 else st.VOCAB_DIR + ""
+    src_file = st.CNT_DIR + sys.argv[1] if len(sys.argv) > 1 else st.CNT_DIR + "F10-W5.1en"
+    trg_file = st.CNT_DIR + sys.argv[2] if len(sys.argv) > 2 else st.CNT_DIR + "F10-W5.1de"
+    src_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + "F10-W5.1en"
+    trg_vocab = st.VOCAB_DIR + sys.argv[4] if len(sys.argv) > 4 else st.VOCAB_DIR + "F10-W5.1de"
     
     para = src_file.split("/")[-1].split(".")[0]
-    output_file = st.MATRIX_DIR + para + "." + sys.argv[5] if len(sys.argv) > 5 else st.MATRIX_DIR + para + "." + ""
-    pmi = bool(sys.argv[6]) if len(sys.argv) > 6 else True
+    output_file = st.MATRIX_DIR + para + "." + sys.argv[5] if len(sys.argv) > 5 else st.MATRIX_DIR + para + "." + "X-en-de.nopmi"
+    pmi = bool(sys.argv[6]) if len(sys.argv) > 6 else False
     compute_X(src_file, trg_file, src_vocab, trg_vocab, output_file, pmi = pmi)
 

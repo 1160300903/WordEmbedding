@@ -5,6 +5,21 @@ from corpus2vocab import read_vocab
 import setting as st
 import sys
 
+def topk_mean(m, k, inplace=False):  # TODO Assuming that axis is 1
+    n = m.shape[0]
+    ans = np.zeros(n, dtype=m.dtype)
+    if k <= 0:
+        return ans
+    if not inplace:
+        m = np.array(m)
+    ind0 = np.arange(n)
+    ind1 = np.empty(n, dtype=int)
+    minimum = m.min()
+    for i in range(k):
+        m.argmax(axis=1, out=ind1)
+        ans += m[ind0, ind1]
+        m[ind0, ind1] = minimum
+    return ans / k
 #since the embedding words set equals the context words set in my experiment,
 #I just use embedding words to form D_1 and D_2
 def vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file, TOP_TRANS):
@@ -47,30 +62,23 @@ def vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file, TOP
     print("finding translation pairs")
     batch = 1000
     output = open(output_file,"w",encoding="utf-8")
-    for i in range(int(len(src_word2index)/batch)):
-        print("batch",i)
-        temp = src_matrix[i*batch:i*batch+batch,:]
-        result = np.dot(temp, trg_matrix)
-        index = np.argpartition(result,-TOP_TRANS,axis=1)[:,-TOP_TRANS:]
-        base = i*batch
-        for j in range(0,batch):
+
+    knn_sim_bwd = np.zeros(trg_matrix.shape[1])
+    for i in range(0, trg_matrix.shape[1], batch):
+        j = min(i + batch, trg_matrix.shape[1])
+        knn_sim_bwd[i:j] = topk_mean(trg_matrix.T[i:j].dot(src_matrix.T), k=10, inplace=True)
+
+    for i in range(0, src_matrix.shape[0], batch):
+        print("batch",i/batch)
+        temp = src_matrix[i: min(i + batch, src_matrix.shape[0]),:]
+        similarity = 2 * np.dot(temp, trg_matrix) - knn_sim_bwd
+        index = np.argpartition(similarity,-TOP_TRANS,axis=1)[:,-TOP_TRANS:]
+        for j in range(0, temp.shape[0]):
             sum = 0
             for k in range(TOP_TRANS):
-                sum += result[j, index[j, k]]
+                sum += similarity[j, index[j, k]]
             for k in range(TOP_TRANS):
-                output.write(src_index2word[base+j]+" "+trg_index2word[index[j, k]]+" "+str(result[j,index[j, k]]/sum)+"\n")
-
-    i = int(len(src_word2index)/batch)
-    temp = src_matrix[i*batch:len(src_word2index), :]
-    result = np.dot(temp, trg_matrix)
-    index = np.argpartition(result, -TOP_TRANS, axis=1)[:,-TOP_TRANS:]
-    base = i*batch
-    for j in range(0, temp.shape[0]):
-        sum = 0
-        for k in range(TOP_TRANS):
-            sum += result[j, index[j, k]]
-        for k in range(TOP_TRANS):
-            output.write(src_index2word[base+j]+" "+trg_index2word[index[j, k]]+" "+str(result[j, index[j, k]]/sum)+"\n")
+                output.write(src_index2word[i+j]+" "+trg_index2word[index[j, k]]+" "+str(similarity[j,index[j, k]]/sum)+"\n")
     output.close()
 if __name__ == "__main__":
     TOP_TRANS = int(sys.argv[1]) if len(sys.argv) > 1 else 50
@@ -88,8 +96,5 @@ if __name__ == "__main__":
     output_file += sys.argv[6] if len(sys.argv) > 6 else "en-de"
 
     vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file, TOP_TRANS)
-
-
-
 
     

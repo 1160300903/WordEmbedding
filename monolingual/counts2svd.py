@@ -1,37 +1,32 @@
 import numpy as np
 import setting as st
-from scipy.sparse import dok_matrix, csc_matrix
+from scipy.sparse import dok_matrix, csc_matrix, eye
 from sparsesvd import sparsesvd
+import sys
+import time
+from corpus2vocab import read_vocab
 
-def cnt2svd(count_dir, file):
-    with open(count_dir + file,"r",encoding="UTF-8-sig") as src_file:
-        text = src_file.readlines()
+def cnt2svd(count_file, vocab_file):
+    src_file = open(count_file,"r",encoding="UTF-8")
 
-    context_words, embedding_words = {}, {}
-    i, j = 0, 0
-    for k in range(len(text)):
-        text[k] = text[k].strip().split()
-        if text[k][0] not in embedding_words:
-            embedding_words[text[k][0]] = i
-            i += 1
-        if text[k][1] not in context_words:
-            context_words[text[k][1]] = j
-            j += 1
-    print("length of wordDist: "+str(len(embedding_words)))
-    print("length of contextDist: "+str(len(context_words)))
+    word2index = read_vocab(vocab_file)
+
+    print("length of word_dict: "+str(len(word2index)))
 
     
-    counts = csc_matrix((len(embedding_words),len(context_words)),dtype="float32")
-    tmp_counts = dok_matrix((len(embedding_words),len(context_words)),dtype="float32")
+    counts = csc_matrix((len(word2index),len(word2index)),dtype="float32")
+    tmp_counts = dok_matrix((len(word2index),len(word2index)),dtype="float32")
     times = 0
-    for i in range(len(text)):
-        word, context, count = text[i]
-        tmp_counts[embedding_words[word],context_words[context]] = int(count)
+    text = src_file.readline()
+    while text != "":
+        word, context, count = text.strip().split()
+        tmp_counts[word2index[word], word2index[context]] = int(count)
         times += 1
         if times == st.UPDATE_THRESHOLD:
             counts = counts + tmp_counts.tocsc()
-            tmp_counts = dok_matrix((len(embedding_words),len(context_words)),dtype="float32")
+            tmp_counts = dok_matrix((len(word2index),len(word2index)),dtype="float32")
             times = 0
+        text = src_file.readline()
     counts = counts + tmp_counts.tocsc()
     #calculate e^pmi
     sum_r = np.array(counts.sum(axis=1))[:,0]
@@ -53,18 +48,29 @@ def cnt2svd(count_dir, file):
 
     pmi = pmi * sum_total
     pmi.data = np.log(pmi.data)
-
-    ut = sparsesvd(pmi, st.VECTOR_LENGTH)[0]
-    return ut.T, embedding_words
+    
+    I = eye(pmi.shape[0], format="csc")
+    print("start svd")
+    start = time.time()
+    ut = sparsesvd(pmi, I, st.VECTOR_LENGTH)[0]
+    print((time.time() - start)/60)
+    return ut.T, word2index
 
 if __name__ == "__main__":
-    u, embedding_words = cnt2svd(st.CNT_OUTPUT, st.CNT_FILE)
-    paras = st.CNT_FILE.split(".")[0]
-    output = open(st.VECTOR_OUTPUT + "L" + str(st.VECTOR_LENGTH) + "-"\
-                  + paras + "." + st.LANG + ".txt","w",encoding="utf-8")
-    output.write(str(len(embedding_words))+" "+str(st.VECTOR_LENGTH)+"\n")
-    for word in embedding_words:
-        array = u[embedding_words[word]]
+    count_file = st.CNT_DIR + sys.argv[1] if len(sys.argv) > 1 else st.CNT_DIR + "F10-W5.1de"
+    vocab_file = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + "F10-W5.1de"
+
+    param = count_file.split("/")[-1].split(".")[0]
+    output_file = st.VEC_DIR + param + "."
+    output_file += sys.argv[3] if len(sys.argv) > 3 else "1de"
+
+    u, word2index = cnt2svd(count_file, vocab_file)
+
+
+    output = open(output_file,"w",encoding="utf-8")
+    output.write(str(len(word2index)) + " " + str(st.VECTOR_LENGTH) + "\n")
+    for word in word2index:
+        array = u[word2index[word]]
         output.write(word)
         for i in range(st.VECTOR_LENGTH):
             output.write(" %.8f"%array[-i-1])

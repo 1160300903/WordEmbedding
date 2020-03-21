@@ -1,13 +1,14 @@
 import nltk
 import setting as st
-def cps2cnt(src_dir, src_file):
+import sys
+def cps2cnt(src_file, output_file):
     word_dict = {}
 
-    with open(src_dir + src_file,"r",encoding="UTF-8-sig") as src_file:
+    with open(src_file,"r",encoding="UTF-8-sig") as src_file:
         text = src_file.readlines()
         for k in range(len(text)):
             if k%10000==0:
-                print(k, end= " ")
+                print(k)
             text[k] = nltk.word_tokenize(text[k])
             for word in text[k]:
                 if not word.isalpha():
@@ -24,7 +25,7 @@ def cps2cnt(src_dir, src_file):
         line = text[i]
         length  = len(line)
         if i%10000==0:
-            print("count",i, end= " ")
+            print("count",i)
         for j in range(length):
             for k in range(1,st.WINDOW_LENGTH+1):
                 if j - k >= 0 and line[j] in vocab and line[j - k] in vocab:
@@ -35,11 +36,15 @@ def cps2cnt(src_dir, src_file):
                     counts[line[j]][line[j + k]] = counts[line[j]][line[j + k]] + 1 if line[j + k]\
                                                     in counts[line[j]] else 1
                 
-    with open(st.CNT_OUTPUT+"F"+str(st.WORD_FREQ)+"-W"+str(st.WINDOW_LENGTH)+"."+st.SRC_FILE,"w") as output:
+    with open(output_count,"w", encoding="utf-8") as output:
         for word in counts:
             for context in counts[word]:
                 output.write(word+" "+context+" "+str(counts[word][context])+"\n")
 
 if __name__ == "__main__":
-    cps2cnt(st.SRC_DIR, st.SRC_FILE)
+    corpus = st.CPR_DIR + sys.argv[1] if len(sys.argv) > 1 else st.CPR_DIR + "mono.tok.en"
+
+    output_count = st.CNT_DIR + "F" + str(st.WORD_FREQ) + "-W" + str(st.WINDOW_LENGTH) + "."
+    output_count += sys.argv[2] if len(sys.argv) > 2 else "1en"
+    cps2cnt(corpus, output_count)
 

@@ -23,11 +23,12 @@ def svd(matrixX, matrixD, svd_output):
 
 
 if __name__ =="__main__":
-    matrixX = st.MATRIX_DIR + sys.argv[1] if len(sys.argv) > 1 else st.MATRIX_DIR + ""
-    matrixD = st.MATRIX_DIR + sys.argv[2] if len(sys.argv) > 2 else st.MATRIX_DIR + ""
+    matrixX = st.MATRIX_DIR + sys.argv[1] if len(sys.argv) > 1 else st.MATRIX_DIR + "F10-W5.X-en-de"
+    matrixD = st.MATRIX_DIR + sys.argv[2] if len(sys.argv) > 2 else st.MATRIX_DIR + "F10-W5-T80.D-en-de"
     
     para = matrixX.split("/")[-1].split(".")[0]
+    para +="-" +  matrixD.split("/")[-1].split(".")[0].split("-")[-1]
     svd_output = st.RES_DIR + para + "-L" + str(st.VECTOR_LENGTH) + "."
-    svd_output += sys.argv[3] if len(sys.argv) > 3 else ""
+    svd_output += sys.argv[3] if len(sys.argv) > 3 else "en-de"
 
     svd(matrixX, matrixD, svd_output)

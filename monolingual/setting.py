@@ -1,11 +1,10 @@
 WORD_FREQ = 10
 WINDOW_LENGTH = 5
-SRC_DIR = "../vecmap/"
-SRC_FILE = ""
-CNT_OUTPUT = "./tempdata/count/"
-CNT_FILE = ""
-
 VECTOR_LENGTH = 300
 UPDATE_THRESHOLD = 100000
-VECTOR_OUTPUT = ""
-LANG = "en"
+
+
+CPR_DIR = "../corpora/"
+CNT_DIR = "./tempdata/count/"
+VEC_DIR = "./vector/"
+VOCAB_DIR = "./tempdata/vocab/"
