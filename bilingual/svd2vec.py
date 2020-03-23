@@ -2,39 +2,40 @@ from corpus2vocab import read_vocab
 import setting as st
 import numpy as np
 import sys
-def svd2vec(src_vocab, trg_vocab, svd_path, src_vec, trg_vec):
 
+
+def svd2vec(src_vocab, trg_vocab, svd_path, src_vec, trg_vec):
     src_word2index = read_vocab(src_vocab)
     trg_word2index = read_vocab(trg_vocab)
 
-    u = np.loadtxt(svd_path+"-U", dtype= "float32")
+    u = np.loadtxt(svd_path + "-U", dtype="float32")
     # s = np.loadtxt(svd_path+"-s", dtype= "float32")
     # v = np.loadtxt(svd_path+"-V", dtype= "float32")
     top = 40000
     print("output vectors")
     length = min(st.VECTOR_LENGTH, u.shape[1])
-    output = open(src_vec, "w",encoding="utf-8")
-    output.write(str(top)+" "+str(length)+"\n")
+    output = open(src_vec, "w", encoding="utf-8")
+    output.write(str(top) + " " + str(length) + "\n")
     for word in src_word2index:
         if src_word2index[word] >= top:
             continue
         vector = u[src_word2index[word]]
         output.write(word)
         for i in range(length):
-            output.write(" %.8f"%vector[i])
+            output.write(" %.8f" % vector[i])
         output.write("\n")
     output.close()
-    
+
     total_top = top + len(src_word2index)
-    output = open(trg_vec, "w",encoding="utf-8")
-    output.write(str(top)+" "+str(length)+"\n")
+    output = open(trg_vec, "w", encoding="utf-8")
+    output.write(str(top) + " " + str(length) + "\n")
     for word in trg_word2index:
         if trg_word2index[word] >= total_top:
             continue
         vector = u[trg_word2index[word]]
         output.write(word)
         for i in range(length):
-            output.write(" %.8f"%vector[i])
+            output.write(" %.8f" % vector[i])
         output.write("\n")
     output.close()
 
@@ -48,6 +49,5 @@ if __name__ == "__main__":
     para = svd_path.split("/")[-1].split(".")[0]
     src_vec = st.VEC_DIR + para + "." + sys.argv[4] if len(sys.argv) > 4 else st.VEC_DIR + para + "." + "1en-csls"
     trg_vec = st.VEC_DIR + para + "." + sys.argv[5] if len(sys.argv) > 5 else st.VEC_DIR + para + "." + "1de-csls"
-    
-    svd2vec(src_vocab, trg_vocab, svd_path, src_vec, trg_vec)
 
+    svd2vec(src_vocab, trg_vocab, svd_path, src_vec, trg_vec)
