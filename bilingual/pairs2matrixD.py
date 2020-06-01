@@ -31,12 +31,12 @@ def compute_D(pairs_file, src_vocab, trg_vocab, output_file):
     save_matrix(output_file, D)
 
 if __name__ == "__main__":
-    pairs_file = st.PAIRS_DIR + sys.argv[1] if len(sys.argv) > 1 else st.PAIRS_DIR + "F10-W5-T80.en-de"
-    src_vocab = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + "F10-W5.1en"
-    trg_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + "F10-W5.1de"
+    pairs_file = st.PAIRS_DIR + sys.argv[1] if len(sys.argv) > 1 else st.PAIRS_DIR + "mapped-T90.en-zh"
+    src_vocab = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + "F10-W5.2en"
+    trg_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + "F10-W5.2zh"
 
     para = pairs_file.split("/")[-1].split(".")[0]
-    output_file = st.MATRIX_DIR + para + "." + sys.argv[4] if len(sys.argv) > 4 else st.MATRIX_DIR + para + "." + "D-en-de"
+    output_file = st.MATRIX_DIR + para + "." + sys.argv[4] if len(sys.argv) > 4 else st.MATRIX_DIR + para + "." + "D-en-zh"
     compute_D(pairs_file, src_vocab, trg_vocab, output_file)
 
     

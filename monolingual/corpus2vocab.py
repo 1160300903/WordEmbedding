@@ -33,7 +33,7 @@ def write_vocab(word2index, path):
             output.write(word+" "+str(word2index[word])+"\n")
 def read_vocab(path):
     vocab = {}
-    with open(path,"r",encoding="utf-8") as input:
+    with open(path,"r",encoding="UTF-8-sig") as input:
         for line in input.readlines():
             word, index = line.strip().split()
             vocab[word] = int(index)

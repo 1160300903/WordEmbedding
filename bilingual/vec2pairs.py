@@ -73,19 +73,19 @@ def vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file, TOP
             output.write(src_index2word[base+j]+" "+trg_index2word[index[j, k]]+" "+str(result[j, index[j, k]]/sum)+"\n")
     output.close()
 if __name__ == "__main__":
-    TOP_TRANS = int(sys.argv[1]) if len(sys.argv) > 1 else 50
-    src_vocab = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + "F10-W5.1en"
-    trg_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + "F10-W5.1de"
+    TOP_TRANS = int(sys.argv[1]) if len(sys.argv) > 1 else 90
+    src_vocab = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + "F10-W5.2en"
+    trg_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + "F10-W5.2zh"
 
     src_mono_vec = st.RDM_VEC_DIR
     trg_mono_vec = st.RDM_VEC_DIR
 
-    src_mono_vec += sys.argv[4] if len(sys.argv) > 4 else "F10-W5.1en"
-    trg_mono_vec += sys.argv[5] if len(sys.argv) > 5 else "F10-W5.1de"
+    src_mono_vec += sys.argv[4] if len(sys.argv) > 4 else "mapped.2en"
+    trg_mono_vec += sys.argv[5] if len(sys.argv) > 5 else "mapped.2zh"
 
     param = src_mono_vec.split("/")[-1].split(".")[0]
     output_file = st.PAIRS_DIR + param + "-T" + str(TOP_TRANS) + "."
-    output_file += sys.argv[6] if len(sys.argv) > 6 else "en-de"
+    output_file += sys.argv[6] if len(sys.argv) > 6 else "en-zh"
 
     vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file, TOP_TRANS)
 

@@ -38,9 +38,9 @@ def compute_D(dict_file, src_vocab, trg_vocab, output_file):
 
 if __name__ == "__main__":
     dict_file = st.DICT_DIR + sys.argv[1] if len(sys.argv) > 1 else st.DICT_DIR + "en-de.train.txt"
-    src_vocab = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + "F10-W5.1en"
-    trg_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + "F10-W5.1de"
+    src_vocab = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + "F10-W5.2en"
+    trg_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + "F10-W5.2zh"
 
-    output_file = st.MATRIX_DIR + sys.argv[4] if len(sys.argv) > 4 else st.MATRIX_DIR + "D-en-de"
+    output_file = st.MATRIX_DIR + sys.argv[4] if len(sys.argv) > 4 else st.MATRIX_DIR + "D-en-zh"
     compute_D(dict_file, src_vocab, trg_vocab, output_file)
 

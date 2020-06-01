@@ -1,5 +1,4 @@
-for i in $( seq 1 8 )
+for i in 30 50 70	
 do
-t=`expr $i * 10`
-python ../../vecmap/map_embeddings.py --unsupervised vector/F10-W5-T($t)-L300.1en-csls vector/F10-W5-T($t)-L300.1de-csls vector/mapped-T($t).1en-csls vector/mapped-T($t).1de-csls -v &
+CUDA_VISIBLE_DEVICES=3 python ../../vecmap/map_embeddings.py --unsupervised vector/F10-W5-T$i-L300.2en-csls vector/F10-W5-T$i-L300.2zh-csls vector/mapped-T$i.2en-csls vector/mapped-T$i.2zh-csls -v --csls --cuda &
 done

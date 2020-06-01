@@ -20,9 +20,18 @@ def topk_mean(m, k, inplace=False):  # TODO Assuming that axis is 1
         ans += m[ind0, ind1]
         m[ind0, ind1] = minimum
     return ans / k
+
+def align(word2index):
+    min_index = 10000000000
+    for word in word2index:
+        min_index = min(min_index, word2index[word])
+    if min_index > 0:
+        for word in word2index:
+            word2index[word] = word2index[word] - min_index
+
 #since the embedding words set equals the context words set in my experiment,
 #I just use embedding words to form D_1 and D_2
-def vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file, TOP_TRANS):
+def vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file):
     print("loading source vectors")
     src_vectors = gensim.models.KeyedVectors.load_word2vec_format(src_mono_vec, binary = False)
     print("loading target vectors")
@@ -32,8 +41,10 @@ def vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file, TOP
     src_word2index = read_vocab(src_vocab)
     print("load trg_word2index")
     trg_word2index = read_vocab(trg_vocab)
-    length = len(src_word2index)
-    trg_word2index = {word:trg_word2index[word]-length for word in trg_word2index}
+    align(src_word2index)
+    align(trg_word2index)
+    for word in src_word2index:
+        print(src_word2index[word])
 
     src_index2word = {src_word2index[word]:word for word in src_word2index}
     trg_index2word = {trg_word2index[word]:word for word in trg_word2index}
@@ -63,38 +74,25 @@ def vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file, TOP
     batch = 1000
     output = open(output_file,"w",encoding="utf-8")
 
-    knn_sim_bwd = np.zeros(trg_matrix.shape[1])
-    for i in range(0, trg_matrix.shape[1], batch):
-        j = min(i + batch, trg_matrix.shape[1])
-        knn_sim_bwd[i:j] = topk_mean(trg_matrix.T[i:j].dot(src_matrix.T), k=10, inplace=True)
-
+    knn_sim_bwd = np.zeros(src_matrix.shape[0])# src_matrix.shape[0]是目标预言的单词个数
     for i in range(0, src_matrix.shape[0], batch):
-        print("batch",i/batch)
-        temp = src_matrix[i: min(i + batch, src_matrix.shape[0]),:]
-        similarity = 2 * np.dot(temp, trg_matrix) - knn_sim_bwd
-        index = np.argpartition(similarity,-TOP_TRANS,axis=1)[:,-TOP_TRANS:]
-        for j in range(0, temp.shape[0]):
-            sum = 0
-            for k in range(TOP_TRANS):
-                sum += similarity[j, index[j, k]]
-            for k in range(TOP_TRANS):
-                output.write(src_index2word[i+j]+" "+trg_index2word[index[j, k]]+" "+str(similarity[j,index[j, k]]/sum)+"\n")
+        print("batch", i)
+        j = min(i + batch, src_matrix.shape[0])
+        knn_sim_bwd[i:j] = topk_mean(src_matrix[i:j].dot(trg_matrix), k=100, inplace=True)
+
+    for i in range(0, knn_sim_bwd.shape[0]):
+        output.write(src_index2word[i] + "," + str(knn_sim_bwd[i]) + "\n")
+
     output.close()
 if __name__ == "__main__":
-    TOP_TRANS = int(sys.argv[1]) if len(sys.argv) > 1 else 50
-    src_vocab = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + "F10-W5.2en"
-    trg_vocab = st.VOCAB_DIR + sys.argv[3] if len(sys.argv) > 3 else st.VOCAB_DIR + "F10-W5.2zh"
+    src_vocab = st.VOCAB_DIR + sys.argv[1] if len(sys.argv) > 1 else st.VOCAB_DIR + "F10-W5.2zh"
+    trg_vocab = st.VOCAB_DIR + sys.argv[2] if len(sys.argv) > 2 else st.VOCAB_DIR + "F10-W5.2zh"
 
-    src_mono_vec = st.RDM_VEC_DIR
-    trg_mono_vec = st.RDM_VEC_DIR
+    src_vec = sys.argv[3] if len(sys.argv) > 3 else "../../word2vec/mapped.2zh"
+    trg_vec = sys.argv[4] if len(sys.argv) > 4 else "../../word2vec/mapped.2zh"
 
-    src_mono_vec += sys.argv[4] if len(sys.argv) > 4 else "mapped.2en"
-    trg_mono_vec += sys.argv[5] if len(sys.argv) > 5 else "mapped.2zh"
+    output_file = sys.argv[6] if len(sys.argv) > 6 else "zh-zh.csv"
 
-    param = src_mono_vec.split("/")[-1].split(".")[0]
-    output_file = st.PAIRS_DIR + param + "-T" + str(TOP_TRANS) + "."
-    output_file += sys.argv[6] if len(sys.argv) > 6 else "en-zh-csls"
-
-    vec2pairs(src_mono_vec, trg_mono_vec, src_vocab, trg_vocab, output_file, TOP_TRANS)
+    vec2pairs(src_vec, trg_vec, src_vocab, trg_vocab, output_file)
 
     

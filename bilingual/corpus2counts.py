@@ -45,10 +45,10 @@ def cps2cnt(src_file, output_file):
 
 
 if __name__ == "__main__":
-    corpus = st.CPR_DIR + sys.argv[1] if len(sys.argv) > 1 else st.CPR_DIR + "test.de"
+    corpus = st.CPR_DIR + sys.argv[1] if len(sys.argv) > 1 else st.CPR_DIR + "mono.tok.en"
 
     output_count = st.CNT_DIR + "F" + str(st.WORD_FREQ) + "-W" + str(st.WINDOW_LENGTH) + "."
-    output_count += sys.argv[2] if len(sys.argv) > 2 else "de"
+    output_count += sys.argv[2] if len(sys.argv) > 2 else "1en"
 
     cps2cnt(corpus, output_count)
 
